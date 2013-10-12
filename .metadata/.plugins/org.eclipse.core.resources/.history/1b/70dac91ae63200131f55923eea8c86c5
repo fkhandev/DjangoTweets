@@ -1,0 +1,9 @@
+{% if user.is_authenticated %}
+    <p>Welcome, {{ user.username }}. Thanks for logging in.</p>
+	<form action="/logout/" method="post">{% csrf_token %}
+	{{ form.as_p }}
+	<input type="submit" value="Logout" />
+	</form>
+{% else %}
+    <p>Welcome, new user. Please log in.</p>
+{% endif %}

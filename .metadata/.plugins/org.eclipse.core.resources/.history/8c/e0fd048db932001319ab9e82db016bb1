@@ -1,0 +1,2 @@
+
+<p>Logged in as (%  request.POST['username'] %)</p>

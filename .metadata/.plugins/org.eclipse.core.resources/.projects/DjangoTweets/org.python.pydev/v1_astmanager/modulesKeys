@@ -1,0 +1,11 @@
+MODULES_MANAGER_V2
+DjangoTweets.__init__|C:\MySite\DjangoTweets\DjangoTweets\__init__.py
+DjangoTweets.settings|C:\MySite\DjangoTweets\DjangoTweets\settings.py
+DjangoTweets.urls|C:\MySite\DjangoTweets\DjangoTweets\urls.py
+DjangoTweets.wsgi|C:\MySite\DjangoTweets\DjangoTweets\wsgi.py
+manage|C:\MySite\DjangoTweets\manage.py
+mytweetsrv.__init__|C:\MySite\DjangoTweets\mytweetsrv\__init__.py
+mytweetsrv.admin|C:\MySite\DjangoTweets\mytweetsrv\admin.py
+mytweetsrv.models|C:\MySite\DjangoTweets\mytweetsrv\models.py
+mytweetsrv.tests|C:\MySite\DjangoTweets\mytweetsrv\tests.py
+mytweetsrv.views|C:\MySite\DjangoTweets\mytweetsrv\views.py

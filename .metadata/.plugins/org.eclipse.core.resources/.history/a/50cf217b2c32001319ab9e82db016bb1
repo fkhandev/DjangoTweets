@@ -1,0 +1,13 @@
+<html>  
+<head>  
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>  
+    <script type="text/javascript" src="http://documentcloud.github.com/underscore/underscore-min.js"></script>  
+    <script type="text/javascript" src="http://backbonejs.org/backbone-min.js"></script>  
+<!--    <script type="text/javascript" src="{{ STATIC_URL }}app.js"></script> -- >>  
+</head>
+<title>My Tweet Service in Django! </title>  
+<body>  
+      
+    <div id="app"></div>
+</body>  
+</html>  
