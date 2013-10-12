@@ -30,9 +30,7 @@ def register(request):
                 user = auth.authenticate(username=username, password=password)
                 auth.login(request, user)
                 # Redirect to a success page.
-                
-                return render_to_response('welcome.html', {},   
-                context_instance=RequestContext(request))
+                return HttpResponseRedirect("/home/")
             else:
                 return HttpResponseRedirect("/login/")
     else:

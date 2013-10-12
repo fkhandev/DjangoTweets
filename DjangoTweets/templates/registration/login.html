@@ -3,7 +3,8 @@
   {% if form.errors %}
     <p class="error">Sorry, that's not a valid username or password</p>
   {% endif %}
-
+  
+  <p>Welcome, new user. Please log in.</p>  
   <form action="" method="post">{% csrf_token %}
     <label for="username">User name:</label>
     <input type="text" name="username" value="" id="username">
@@ -13,5 +14,9 @@
     <input type="submit" value="login" />
     <input type="hidden" name="next" value="{{ next|escape }}" />
   </form>
+   <p>Or Register </p>
+	<form action="/register/" method="get">{% csrf_token %}
+	<input type="submit" value="Register" />
+	</form>
 
 {% endblock %}
