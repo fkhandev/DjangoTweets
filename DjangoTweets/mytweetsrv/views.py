@@ -1,18 +1,19 @@
 # Create your views here.
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext  
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 from django.http import HttpResponse  
-from mytweetsrv.models import Item  
 from django.utils import simplejson as json  
 from django.contrib import auth
-from django.contrib.auth.views import logout
-
+from django.contrib.auth.models import User
+from mytweetsrv.models import Subscriber
 from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.views.decorators.csrf import csrf_exempt
 
 def home(request):  
+
     if request.user.is_authenticated():
-        return render_to_response('home.html', context_instance=RequestContext(request))
+        return render_to_response('home.html',{}, context_instance=RequestContext(request))
     else:
         return HttpResponseRedirect("/login/")
 
@@ -58,15 +59,82 @@ def logout(request):
     # Redirect to a success page.
     return HttpResponseRedirect("/logout/")
 
-def data(request):  
+       
+@csrf_exempt
+def search(request):
+    if request.method == 'POST':
+        allusers = User.objects.all()
+        search = request.POST.get('searchquery', None)
+        
+        if search:
+            user_choices = allusers.filter(username__contains=search).order_by('username')
+            userlist = "<ul>"
+            
+            for user in user_choices:
+                loggeduser = allusers.filter(id=request.user.id)
+               
+                if not Subscriber.objects.filter(user=loggeduser,followinguser=user):
+                    userlist+="<li><form action='/follow/' method='POST'><label>"+user.username+"</label><input name='followid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Follow'</input></form></li>"
+                else:
+                    userlist+="<li><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Stop Following'</input></form></li>"
+                
+            userlist+="</ul>"
+        
+            return render_to_response('home.html', {'user_choices_list': userlist}, context_instance=RequestContext(request))
+        else:
+            return render_to_response('home.html', {},  context_instance=RequestContext(request))
+    else:
+        return render_to_response('home.html', {},  context_instance=RequestContext(request))
+
+@csrf_exempt         
+def unsubscribe(request):
+    if request.method == 'POST':
+        current_user = request.user
+        unsubscribeid = request.POST.get('unsubscribeid','')
+        unfollowuser = User.objects.filter(id=unsubscribeid)[0]
+        if unfollowuser is not None:
+            f = Subscriber.objects.filter(user=current_user, followinguser= unfollowuser )
+            f.delete()
+
+            success = "you are no longer following '" + unfollowuser.username+"'"
+            print success
+            return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request,{'message': success}))
+        else:
+            return HttpResponseRedirect("/home/", {'message': "User does not exist anymore"})
+    else:
+        return HttpResponseRedirect("/home/")
+
+
+@csrf_exempt    
+def follow(request):
+   
+    if request.method == 'POST':
+        current_user = request.user
+        followid = request.POST.get('followid','')
+        followuser = User.objects.filter(id=followid)[0]
+        if followuser is not None:
+            if followuser == current_user:
+                success = "You cannot follow yourself!"
+                return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request))
+            else:
+                f = Subscriber(user=current_user, followinguser= followuser )
+                f.save()
+                success = "you are now following '" + followuser.username+"'"
+            
+            return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request))
+        else:
+            return HttpResponseRedirect("/home/", {'message': "User does not exist anymore"})
+    else:
+        return HttpResponseRedirect("/home/")
+
+
+
+def AllUsers(request):
     mimetype = 'application/json'      
       
-    udata = Item.objects.all()  
+    udata = User.objects.all()  
     sdata = []  
     for d in udata:  
         a = {'id': d.id, 'title': d.title }  
         sdata.append(a)  
     return HttpResponse(json.dumps(sdata), mimetype)
-
-
-  

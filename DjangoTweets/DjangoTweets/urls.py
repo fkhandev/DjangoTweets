@@ -9,7 +9,9 @@ urlpatterns = patterns('',
     (r'^$', 'mytweetsrv.views.home'),
     url(r'home', 'mytweetsrv.views.home'),
     url(r'register', 'mytweetsrv.views.register'),
-    #url(r'welcome', 'mytweetsrv.views.welcome'),
+    url(r'search', 'mytweetsrv.views.search'),
+    url(r'follow', 'mytweetsrv.views.follow'),
+    url(r'unsubscribe', 'mytweetsrv.views.unsubscribe'),
     url(r'login', 'django.contrib.auth.views.login'),
     url(r'logout', 'django.contrib.auth.views.logout'),
     # url(r'^DjangoTweets/', include('DjangoTweets.foo.urls')),
@@ -19,6 +21,6 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
      url(r'^admin/', include(admin.site.urls)),
-     url(r'^api/data', 'mytweetsrv.views.data'),
+     
      
 )

@@ -6,7 +6,5 @@ Created on Oct 11, 2013
 from django.contrib import admin  
 from mytweetsrv.models import *  
   
-class ItemAdmin(admin.ModelAdmin):  
+class Tweets(admin.ModelAdmin):  
     pass  
-  
-admin.site.register(Item,ItemAdmin)  

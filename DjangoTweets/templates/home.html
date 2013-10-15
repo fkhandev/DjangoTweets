@@ -1,9 +1,17 @@
-{% if user.is_authenticated %}
-    <p>Welcome, {{ user.username }}. Thanks for logging in.</p>
-	<form action="/logout/" method="get">{% csrf_token %}
-	{{ form.as_p }}
-	<input type="submit" value="Logout" />
-	</form>
-{% else %}
-    <p>Welcome, new user. Please log in.</p>
-{% endif %}
+{% extends "base.html" %}
+
+{% block content %}
+
+{{ message}}
+
+<form action="/search/" method="post">{% csrf_token %}
+    <label for="searchquery">Search User:</label>
+    <input type="text" name="searchquery" value="" id="searchquery">
+    <input type="submit" value="Search" />
+    <input type="hidden" name="next" value="{{ next|escape }}" />
+</form>
+    <div>
+    	{{user_choices_list | safe}}
+    </div>
+
+{% endblock %}

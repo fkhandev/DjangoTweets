@@ -7,6 +7,8 @@ TEMPLATE_DEBUG = DEBUG
 
 LOGIN_REDIRECT_URL = "/home/"
 
+os.environ['DJANGO_SETTINGS_MODULE'] = "DjangoTweets.settings"
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
