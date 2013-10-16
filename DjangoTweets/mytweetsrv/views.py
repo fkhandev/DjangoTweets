@@ -1,21 +1,106 @@
 # Create your views here.
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse  
-from django.utils import simplejson as json  
 from django.contrib import auth
 from django.contrib.auth.models import User
-from mytweetsrv.models import Subscriber
+from mytweetsrv.models import Subscriber, Tweets
 from django.http import HttpResponseRedirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.views.decorators.csrf import csrf_exempt
+from django import forms
+import datetime, time, pytz
 
-def home(request):  
+class TweetBoardForm(forms.Form):
+    tweetmessage = forms.CharField(widget=forms.TextInput, max_length=100)
 
+
+def readable_delta(from_seconds, until_seconds=None):
+
+    if not until_seconds:
+        return 
+    
+    seconds = until_seconds - from_seconds
+    print "seconds "
+    print until_seconds 
+    print from_seconds
+    delta = datetime.timedelta(seconds=seconds.seconds)
+
+    # deltas store time as seconds and days, we have to get hours and minutes ourselves
+    delta_minutes = delta.seconds // 60
+    delta_hours = delta_minutes // 60
+
+    ## show a fuzzy but useful approximation of the time delta
+    if delta.days:
+        return '%d day%s ago' % (delta.days, plur(delta.days))
+    elif delta_hours:
+        return '%d hour%s, %d minute%s ago' % (delta_hours, plur(delta_hours), delta_minutes, plur(delta_minutes))
+    elif delta_minutes:
+        return '%d minute%s ago' % (delta_minutes, plur(delta_minutes))
+    else:
+        return '%d second%s ago' % (delta.seconds, plur(delta.seconds))
+
+def plur(it):
+    '''Quick way to know when you should pluralize something.'''
+    try:
+        size = len(it)
+    except TypeError:
+        size = int(it)
+    return '' if size==1 else 's'
+
+@csrf_exempt
+def PostTweet(request):
+    if request.method== 'POST':
+        msg = request.POST.get('tweetmessage','')
+        posted_date = datetime.datetime.utcnow().replace(tzinfo = pytz.utc)
+        posted_date = datetime.datetime.astimezone(posted_date, pytz.timezone("EST"))
+        t = Tweets(user= request.user, tweettext = msg, posteddate= posted_date )
+
+        t.save()
+        form = TweetBoardForm()
+        return HttpResponseRedirect('/home/', {'TweetBoardForm':form,'message': "tweet posted!"}, RequestContext(request))
+    
+def home(request):
     if request.user.is_authenticated():
-        return render_to_response('home.html',{}, context_instance=RequestContext(request))
+        tweetslist = generateTweetsList(request.user)
+        if request.method == 'POST':
+            form = TweetBoardForm(request)
+            if form.is_valid():
+                return render_to_response('home.html',{'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+        else: 
+            form = TweetBoardForm()
+            return render_to_response('home.html',{'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
     else:
         return HttpResponseRedirect("/login/")
+
+def generateTweetsList(user):
+    tweets = Tweets.objects.filter(user=user)
+    tweetslist="<ul>"
+    local_tz = pytz.timezone("US/Eastern")
+    
+    for tweet in tweets:
+        
+        currentdate = local_tz.localize(datetime.datetime.now(), is_dst=True)
+               
+        dt = readable_delta(tweet.posteddate, currentdate)
+        
+        
+        tweetslist+= "<li>"+ tweet.tweettext+ "    " + dt+"</li>"
+    
+    subscribed_user_list = Subscriber.objects.filter(user=user)
+        
+    for subscribeduser in subscribed_user_list:
+        
+        tweets = Tweets.objects.filter(user=subscribeduser.followinguser)
+        
+        for tweet in tweets:
+            currentdate = local_tz.localize(datetime.datetime.now(), is_dst=True)
+            
+            
+            dt = readable_delta(tweet.posteddate, currentdate )
+            tweetslist+= "<li>"+ tweet.tweettext + " from <b>" + subscribeduser.followinguser.username +"</b>    " + dt +"</li>"
+    
+    tweetslist+="</ul>"
+    return tweetslist
 
 def register(request):
     if request.method == 'POST':
@@ -98,7 +183,7 @@ def unsubscribe(request):
 
             success = "you are no longer following '" + unfollowuser.username+"'"
             print success
-            return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request,{'message': success}))
+            return HttpResponseRedirect("/home/",{'message': success}, RequestContext(request,{'message': success}))
         else:
             return HttpResponseRedirect("/home/", {'message': "User does not exist anymore"})
     else:
@@ -121,20 +206,9 @@ def follow(request):
                 f.save()
                 success = "you are now following '" + followuser.username+"'"
             
-            return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request))
+            return HttpResponseRedirect("/home/",{'message': success}, RequestContext(request))
         else:
             return HttpResponseRedirect("/home/", {'message': "User does not exist anymore"})
     else:
         return HttpResponseRedirect("/home/")
 
-
-
-def AllUsers(request):
-    mimetype = 'application/json'      
-      
-    udata = User.objects.all()  
-    sdata = []  
-    for d in udata:  
-        a = {'id': d.id, 'title': d.title }  
-        sdata.append(a)  
-    return HttpResponse(json.dumps(sdata), mimetype)

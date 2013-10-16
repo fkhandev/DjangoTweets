@@ -2,16 +2,35 @@
 
 {% block content %}
 
+{%if message %}
+<div id=message>
 {{ message}}
+</div>
+{%endif%}
 
-<form action="/search/" method="post">{% csrf_token %}
-    <label for="searchquery">Search User:</label>
-    <input type="text" name="searchquery" value="" id="searchquery">
-    <input type="submit" value="Search" />
-    <input type="hidden" name="next" value="{{ next|escape }}" />
-</form>
+
+<div id="searchdiv">
+	<form action="/search/" method="post">{% csrf_token %}
+	    <label for="searchquery">Search User:</label>
+	    <input type="text" name="searchquery" value="" id="searchquery">
+	    <input type="submit" value="Search" />
+	    <input type="hidden" name="next" value="{{ next|escape }}" />
+	</form>
     <div>
     	{{user_choices_list | safe}}
     </div>
+</div>
 
+<div id="tweetdiv">
+
+<form action="/PostTweet/" method="post">{% csrf_token %}
+	{{TweetBoardForm.as_p}}
+	 <input type="submit" value="Post!" />
+</form>
+{%if tweetslist %}
+	<div>
+		{{tweetslist | safe}}
+	</div>
+{%endif%}
+</div>
 {% endblock %}

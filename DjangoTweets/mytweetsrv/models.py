@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 class Tweets(models.Model):
     user = models.ForeignKey(User)
     tweettext = models.CharField(max_length=100)
+    posteddate = models.DateTimeField()
     
 class Subscriber(models.Model):
     user = models.ForeignKey(User, db_column='user', related_name ='User')
