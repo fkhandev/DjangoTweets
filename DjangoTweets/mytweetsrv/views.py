@@ -53,7 +53,7 @@ def PostTweet(request):
                
         posted_date = datetime.datetime.utcnow().replace(tzinfo = pytz.utc)
         posted_date = posted_date.astimezone(pytz.timezone("Canada/Eastern"))
-        print posted_date
+        
         t = Tweets(user= request.user, tweettext = msg, posteddate= posted_date)
 
         t.save()
@@ -80,12 +80,8 @@ def generateTweetsList(user):
     local_tz = pytz.timezone("Canada/Eastern")
     
     for tweet in tweets:
-        
         currentdate = local_tz.localize(datetime.datetime.now(), is_dst=True)
-               
         dt = readable_delta(tweet.posteddate, currentdate)
-        
-        
         tweetslist+= "<li>"+ tweet.tweettext+ "    " + dt+"</li>"
     
     subscribed_user_list = Subscriber.objects.filter(user=user)
@@ -96,8 +92,6 @@ def generateTweetsList(user):
         
         for tweet in tweets:
             currentdate = local_tz.localize(datetime.datetime.now(), is_dst=True)
-            
-            
             dt = readable_delta(tweet.posteddate, currentdate )
             tweetslist+= "<li>"+ tweet.tweettext + " from <b>" + subscribeduser.followinguser.username +"</b>    " + dt +"</li>"
     
@@ -157,26 +151,28 @@ def search(request):
         
         if search:
             user_choices = allusers.filter(username__contains=search).order_by('username')
-            userlist = "<ul>"
+            userlist = "<table class='table table-striped'>"
             
             for user in user_choices:
                 loggeduser = allusers.filter(id=request.user.id)
                
                 if not Subscriber.objects.filter(user=loggeduser,followinguser=user):
-                    userlist+="<li><form action='/follow/' method='POST'><label>"+user.username+"</label><input name='followid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Follow'</input></form></li>"
+                    userlist+="<tr><td><form action='/follow/' method='POST'><label>"+user.username+"</label><input name='followid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Follow'</input></form></td></tr>"
                 else:
-                    userlist+="<li><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Stop Following'</input></form></li>"
+                    userlist+="<tr><td><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Stop Following'</input></form></td></tr>"
                 
-            userlist+="</ul>"
+            userlist+="</table>"
             
-            return render_to_response('home.html', {'user_choices_list': userlist, 'TweetBoardForm':form,  'tweetslist': tweetslist}, context_instance=RequestContext(request))
+            return render_to_response('home.html', {'user_choices_list': userlist, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:
-            return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist},  context_instance=RequestContext(request))
+            return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
     else:
-        return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist},  context_instance=RequestContext(request))
+        return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
 
 @csrf_exempt         
 def unsubscribe(request):
+    form = TweetBoardForm()
+    tweetslist = generateTweetsList(request.user)
     if request.method == 'POST':
         current_user = request.user
         unsubscribeid = request.POST.get('unsubscribeid','')
@@ -185,18 +181,18 @@ def unsubscribe(request):
             f = Subscriber.objects.filter(user=current_user, followinguser= unfollowuser )
             f.delete()
 
-            success = "you are no longer following '" + unfollowuser.username+"'"
-            print success
-            return HttpResponseRedirect("/home/",{'message': success}, RequestContext(request,{'message': success}))
+            success = "you are no longer following '" + unfollowuser.username+"'"            
+            return render_to_response("home.html",{'message': success, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:
-            return HttpResponseRedirect("/home/", {'message': "User does not exist anymore"})
+            return render_to_response("home.html", {'message': "User does not exist anymore", 'TweetBoardForm':form, 'tweetslist': tweetslist})
     else:
         return HttpResponseRedirect("/home/")
 
 
 @csrf_exempt    
-def follow(request):
-   
+def follow(request):   
+    form = TweetBoardForm()
+    tweetslist = generateTweetsList(request.user)
     if request.method == 'POST':
         current_user = request.user
         followid = request.POST.get('followid','')
@@ -210,15 +206,14 @@ def follow(request):
                 f.save()
                 success = "you are now following '" + followuser.username+"'"
             
-            return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request))
+            return render_to_response("home.html",{'message': success, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:
-            return render_to_response("home.html", {'message': "User does not exist anymore"})
+            return render_to_response("home.html", {'message': "User does not exist anymore", 'TweetBoardForm':form, 'tweetslist': tweetslist})
     else:
         return HttpResponseRedirect("/home/")
 
 @csrf_exempt    
-def CheckIfRefreshNecessary(request):
-    
+def CheckIfRefreshNecessary(request):    
     if request.method == 'POST':
         clientdt = int(request.POST.get('clientdt',''))
         try:
@@ -234,4 +229,4 @@ def CheckIfRefreshNecessary(request):
         except Tweets.DoesNotExist:
             return render_to_response('home.html', {},  context_instance=RequestContext(request))
     else:        
-        return render_to_response('home.html', {},  context_instance=RequestContext(request))   
+        return render_to_response('home.html', {},  context_instance=RequestContext(request))
