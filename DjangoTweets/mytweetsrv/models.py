@@ -8,10 +8,14 @@ class Tweets(models.Model):
     posteddate = models.DateTimeField()
     added = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        get_latest_by = 'added'
+    
 class Subscriber(models.Model):
     user = models.ForeignKey(User, db_column='user', related_name ='User')
     followinguser = models.ForeignKey(User, db_column='followinguser', related_name='followinguser')
     
+   
 # Create your models here.
 class UserSearch(forms.Form):
     searchquery = forms.TextInput(attrs={'size': 20, 'title': 'Search For Users',})

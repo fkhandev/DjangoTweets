@@ -10,6 +10,9 @@
 <form action="/logout/" method="get">{% csrf_token %}
 	Hi {{user.username}}{{ form.as_table }}	<input type="submit" value="Logout" />
 </form>
+
+<input id="last_refresh_datetime" type="hidden"></input>
+
 {%endif%}
 
 {% block content %}

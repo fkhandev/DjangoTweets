@@ -4,11 +4,13 @@ from django.template import RequestContext
 from django.contrib import auth
 from django.contrib.auth.models import User
 from mytweetsrv.models import Subscriber, Tweets
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.views.decorators.csrf import csrf_exempt
 from django import forms
 import datetime, time, pytz
+import simplejson
+
 
 class TweetBoardForm(forms.Form):
     tweetmessage = forms.CharField(widget=forms.TextInput, max_length=100)
@@ -20,9 +22,6 @@ def readable_delta(from_seconds, until_seconds=None):
         return 
     
     seconds = until_seconds - from_seconds
-    print "seconds "
-    print until_seconds 
-    print from_seconds
     delta = datetime.timedelta(seconds=seconds.seconds)
 
     # deltas store time as seconds and days, we have to get hours and minutes ourselves
@@ -51,9 +50,11 @@ def plur(it):
 def PostTweet(request):
     if request.method== 'POST':
         msg = request.POST.get('tweetmessage','')
+               
         posted_date = datetime.datetime.utcnow().replace(tzinfo = pytz.utc)
-        posted_date = datetime.datetime.astimezone(posted_date, pytz.timezone("EST"))
-        t = Tweets(user= request.user, tweettext = msg, posteddate= posted_date )
+        posted_date = posted_date.astimezone(pytz.timezone("Canada/Eastern"))
+        print posted_date
+        t = Tweets(user= request.user, tweettext = msg, posteddate= posted_date)
 
         t.save()
         form = TweetBoardForm()
@@ -66,16 +67,17 @@ def home(request):
             form = TweetBoardForm(request)
             if form.is_valid():
                 return render_to_response('home.html',{'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
-        else: 
+        if request.method == 'GET': 
             form = TweetBoardForm()
             return render_to_response('home.html',{'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+        
     else:
         return HttpResponseRedirect("/login/")
 
 def generateTweetsList(user):
     tweets = Tweets.objects.filter(user=user)
     tweetslist="<ul>"
-    local_tz = pytz.timezone("US/Eastern")
+    local_tz = pytz.timezone("Canada/Eastern")
     
     for tweet in tweets:
         
@@ -212,3 +214,22 @@ def follow(request):
     else:
         return HttpResponseRedirect("/home/")
 
+@csrf_exempt    
+def CheckIfRefreshNecessary(request):
+    
+    if request.method == 'POST':
+        clientdt = int(request.POST.get('clientdt',''))
+        try:
+            latestRecordDT = Tweets.objects.latest().added
+            latestRecordDT = latestRecordDT.astimezone(pytz.timezone("Canada/Eastern"))
+            
+            if latestRecordDT is not None:
+                epoch = int(time.mktime(latestRecordDT.timetuple())*1000)
+                result = clientdt < epoch
+                return_dict = {'message': result,'code':200}
+                json = simplejson.dumps(return_dict)
+                return HttpResponse(json, mimetype="application/x-javascript")
+        except Tweets.DoesNotExist:
+            return render_to_response('home.html', {},  context_instance=RequestContext(request))
+    else:        
+        return render_to_response('home.html', {},  context_instance=RequestContext(request))   

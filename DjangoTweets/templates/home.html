@@ -5,13 +5,35 @@
 <script>
 
 $(document).ready(function() {
+   (function onload() {
+   	$("#last_refresh_datetime")[0].value = ($.now())
+   })();
   (function poll() {
-    setTimeout(function() {
+    
+    lastRefreshDT =$("#last_refresh_datetime")[0].value  
+    url = "/CheckIfRefreshNecessary/"
+
+    setTimeout(function(url) {
         $.ajax({
-            url: "/CheckIfRefreshNecessary/",
-            type: "GET",
+            url: "/CheckIfRefreshNecessary/" ,
+            data: {
+            	clientdt : lastRefreshDT
+            },
+            type: "POST",
             success: function(data) {
-                console.log("polling");
+               if(data.message)
+               {
+               		//refresh page
+               		$.ajax({
+               			url: "/home/",
+               			type: "GET",
+               			success: function(data)
+               			{
+               				window.location.reload();
+               			}
+               		});
+               }
+
             },
             dataType: "json",
             complete: poll,
@@ -47,7 +69,7 @@ $(document).ready(function() {
 	 <input type="submit" value="Post!" />
 </form>
 {%if tweetslist %}
-	<div>
+	<div id="tweetslistdiv">
 		{{tweetslist | safe}}
 	</div>
 {%endif%}
