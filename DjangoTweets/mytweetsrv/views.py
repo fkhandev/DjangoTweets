@@ -149,6 +149,8 @@ def logout(request):
        
 @csrf_exempt
 def search(request):
+    form = TweetBoardForm()
+    tweetslist = generateTweetsList(request.user)
     if request.method == 'POST':
         allusers = User.objects.all()
         search = request.POST.get('searchquery', None)
@@ -166,12 +168,12 @@ def search(request):
                     userlist+="<li><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Stop Following'</input></form></li>"
                 
             userlist+="</ul>"
-        
-            return render_to_response('home.html', {'user_choices_list': userlist}, context_instance=RequestContext(request))
+            
+            return render_to_response('home.html', {'user_choices_list': userlist, 'TweetBoardForm':form,  'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:
-            return render_to_response('home.html', {},  context_instance=RequestContext(request))
+            return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist},  context_instance=RequestContext(request))
     else:
-        return render_to_response('home.html', {},  context_instance=RequestContext(request))
+        return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist},  context_instance=RequestContext(request))
 
 @csrf_exempt         
 def unsubscribe(request):
