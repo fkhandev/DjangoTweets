@@ -210,9 +210,9 @@ def follow(request):
                 f.save()
                 success = "you are now following '" + followuser.username+"'"
             
-            return HttpResponseRedirect("/home/",{'message': success}, RequestContext(request))
+            return render_to_response("home.html",{'message': success}, context_instance=RequestContext(request))
         else:
-            return HttpResponseRedirect("/home/", {'message': "User does not exist anymore"})
+            return render_to_response("home.html", {'message': "User does not exist anymore"})
     else:
         return HttpResponseRedirect("/home/")
 

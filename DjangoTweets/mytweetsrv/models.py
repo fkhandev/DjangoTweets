@@ -1,5 +1,4 @@
 from django.db import models
-from django import forms
 from django.contrib.auth.models import User
 
 class Tweets(models.Model):
@@ -14,10 +13,4 @@ class Tweets(models.Model):
 class Subscriber(models.Model):
     user = models.ForeignKey(User, db_column='user', related_name ='User')
     followinguser = models.ForeignKey(User, db_column='followinguser', related_name='followinguser')
-    
-   
-# Create your models here.
-class UserSearch(forms.Form):
-    searchquery = forms.TextInput(attrs={'size': 20, 'title': 'Search For Users',})
-    searchquery.render('searchquery', 'A search query')
-    
+
