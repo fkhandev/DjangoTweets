@@ -29,7 +29,7 @@
   
 <div id="main">
 	{%if user.is_authenticated %}
-	<h4> Hi {{user.username}}</h4>{{ form.as_table }}
+	<h4> Hi '{{user.username}}'</h4>{{ form.as_table }}
 	<input id="last_refresh_datetime" type="hidden"></input>
 	{%endif%}
 	
@@ -40,9 +40,7 @@
 	{%endif%}
 	<div id="controls-div">
 		<div class="form-group">
-		    <label for="searchquery">Search User:</label>
 		    <input class="input-medium search-query" placeholder="search for users" type="text" name="searchquery" value="" id="searchquery">
-		    
 		    <button type="button" class="btn btn-inline" onclick="searchusers();">Search</button>
 		    
 		    <!-- Button trigger modal -->
