@@ -1,0 +1,19 @@
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.ShowTweetDiv
+{
+	display:none;
+}
+
+textarea
+{
+	resize:none;
+	width:500;
+}
+#main
+{
+	margin:10px
+}
