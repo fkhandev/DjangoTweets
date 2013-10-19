@@ -7,13 +7,8 @@ from mytweetsrv.models import Subscriber, Tweets
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.views.decorators.csrf import csrf_exempt
-from django import forms
 import datetime, time, pytz
 import simplejson
-
-
-class TweetBoardForm(forms.Form):
-    tweetmessage = forms.CharField(widget=forms.TextInput, max_length=100)
 
 
 def readable_delta(from_seconds, until_seconds=None):
@@ -55,28 +50,23 @@ def PostTweet(request):
         posted_date = posted_date.astimezone(pytz.timezone("Canada/Eastern"))
         
         t = Tweets(user= request.user, tweettext = msg, posteddate= posted_date)
-
         t.save()
-        form = TweetBoardForm()
-        return HttpResponseRedirect('/home/', {'TweetBoardForm':form,'message': "tweet posted!"}, RequestContext(request))
+        
+        return_dict =  {'message': "success"}
+        json = simplejson.dumps(return_dict)
+        return HttpResponse(json, mimetype="application/x-javascript")     
+        
     
 def home(request):
     if request.user.is_authenticated():
         tweetslist = generateTweetsList(request.user)
-        if request.method == 'POST':
-            form = TweetBoardForm(request)
-            if form.is_valid():
-                return render_to_response('home.html',{'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
-        if request.method == 'GET': 
-            form = TweetBoardForm()
-            return render_to_response('home.html',{'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
-        
+        return render_to_response('home.html',{ 'tweetslist': tweetslist}, context_instance=RequestContext(request))
     else:
         return HttpResponseRedirect("/login/")
 
 def generateTweetsList(user):
     tweets = Tweets.objects.filter(user=user)
-    tweetslist="<ul>"
+    tweetslist="<ul  class=\"list-unstyled\">"
     local_tz = pytz.timezone("Canada/Eastern")
     
     for tweet in tweets:
@@ -143,12 +133,12 @@ def logout(request):
        
 @csrf_exempt
 def search(request):
-    form = TweetBoardForm()
+    
     tweetslist = generateTweetsList(request.user)
     if request.method == 'POST':
         allusers = User.objects.all()
         search = request.POST.get('searchquery', None)
-        
+        print "search query "+ search
         if search:
             user_choices = allusers.filter(username__contains=search).order_by('username')
             userlist = ""
@@ -156,20 +146,23 @@ def search(request):
             for user in user_choices:
                 loggeduser = allusers.filter(id=request.user.id)
                
+               
                 if not Subscriber.objects.filter(user=loggeduser,followinguser=user):
                     userlist+="<tr><td><form action='/follow/' method='POST'><label>"+user.username+"</label><input name='followid' type='hidden' value='"+str(user.id)+"'></input><input class='btn' type=submit value='Follow'</input></form></td></tr>"
-                else:
+                else:                
                     userlist+="<tr><td><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input class='btn' type=submit value='Stop Following'</input></form></td></tr>"
             
-            return render_to_response('home.html', {'user_choices_list': userlist, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+            return_dict = {'user_choices_list': userlist}
+            json = simplejson.dumps(return_dict)
+            return HttpResponse(json, mimetype="application/x-javascript")            
         else:
-            return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+            return HttpResponse("", mimetype="application/x-javascript")
     else:
-        return render_to_response('home.html', {'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+        return render_to_response('home.html', { 'tweetslist': tweetslist}, context_instance=RequestContext(request))
 
 @csrf_exempt         
 def unsubscribe(request):
-    form = TweetBoardForm()
+    
     tweetslist = generateTweetsList(request.user)
     if request.method == 'POST':
         current_user = request.user
@@ -180,16 +173,16 @@ def unsubscribe(request):
             f.delete()
 
             success = "you are no longer following '" + unfollowuser.username+"'"            
-            return render_to_response("home.html",{'message': success, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+            return render_to_response("home.html",{'message': success,  'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:
-            return render_to_response("home.html", {'message': "User does not exist anymore", 'TweetBoardForm':form, 'tweetslist': tweetslist})
+            return render_to_response("home.html", {'message': "User does not exist anymore",  'tweetslist': tweetslist})
     else:
         return HttpResponseRedirect("/home/")
 
 
 @csrf_exempt    
 def follow(request):   
-    form = TweetBoardForm()
+    
     tweetslist = generateTweetsList(request.user)
     if request.method == 'POST':
         current_user = request.user
@@ -204,9 +197,9 @@ def follow(request):
                 f.save()
                 success = "you are now following '" + followuser.username+"'"
             
-            return render_to_response("home.html",{'message': success, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
+            return render_to_response("home.html",{'message': success,  'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:
-            return render_to_response("home.html", {'message': "User does not exist anymore", 'TweetBoardForm':form, 'tweetslist': tweetslist})
+            return render_to_response("home.html", {'message': "User does not exist anymore",  'tweetslist': tweetslist})
     else:
         return HttpResponseRedirect("/home/")
 
