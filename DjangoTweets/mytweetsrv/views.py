@@ -151,17 +151,15 @@ def search(request):
         
         if search:
             user_choices = allusers.filter(username__contains=search).order_by('username')
-            userlist = "<table class='table table-striped'>"
+            userlist = ""
             
             for user in user_choices:
                 loggeduser = allusers.filter(id=request.user.id)
                
                 if not Subscriber.objects.filter(user=loggeduser,followinguser=user):
-                    userlist+="<tr><td><form action='/follow/' method='POST'><label>"+user.username+"</label><input name='followid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Follow'</input></form></td></tr>"
+                    userlist+="<tr><td><form action='/follow/' method='POST'><label>"+user.username+"</label><input name='followid' type='hidden' value='"+str(user.id)+"'></input><input class='btn' type=submit value='Follow'</input></form></td></tr>"
                 else:
-                    userlist+="<tr><td><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input type=submit value='Stop Following'</input></form></td></tr>"
-                
-            userlist+="</table>"
+                    userlist+="<tr><td><form action='/unsubscribe/' method='POST'><label>"+user.username+"</label><input name='unsubscribeid' type='hidden' value='"+str(user.id)+"'></input><input class='btn' type=submit value='Stop Following'</input></form></td></tr>"
             
             return render_to_response('home.html', {'user_choices_list': userlist, 'TweetBoardForm':form, 'tweetslist': tweetslist}, context_instance=RequestContext(request))
         else:

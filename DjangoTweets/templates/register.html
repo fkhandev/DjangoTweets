@@ -1,10 +1,15 @@
-{% block title %}Create an account{% endblock %}
-
-{% block content %}
-  <h1>Create an account</h1>
-
-  <form action="" method="post">{% csrf_token %}
-      {{ form.as_p }}
-      <input type="submit" value="Create the account">
-  </form>
-{% endblock %}
+<html>
+<head>
+	<link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet">
+	<link href="/static/css/mytweetsrv.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+		<h4>Create an account</h4>
+		<form class="form-horizontal" action="" method="post">{% csrf_token %}
+		    {{ form.as_p }}
+		    <input type="submit" value="Create the account">
+		</form>
+	</div>
+</body>
+</html>

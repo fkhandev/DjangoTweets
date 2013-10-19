@@ -1,5 +1,13 @@
+<html>
+<head>
+	<link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet">
+	<link href="/static/css/mytweetsrv.css" rel="stylesheet">
+</head>
+<body>
 <p>Thanks for using DjangoTweets!</p>
-<form action="/login/" method="get">{% csrf_token %}
-{{ form.as_p }}
-<input type="submit" value="Login" />
-</form>
+	<form action="/login/" method="get">{% csrf_token %}
+		{{ form.as_p }}
+		<input type="submit" class="btn btn-inverse" value="Login" />
+	</form>
+</body>
+</html>

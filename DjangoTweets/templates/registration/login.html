@@ -1,22 +1,23 @@
-{% block content %}
-
+<html>
+<head>
+	<link href="http://getbootstrap.com/dist/css/bootstrap.css" rel="stylesheet">
+	<link href="/static/css/mytweetsrv.css" rel="stylesheet">
+</head>
+<body>
   {% if form.errors %}
     <p class="error">Sorry, that's not a valid username or password</p>
   {% endif %}
-  
-  <p>Welcome, new user. Please log in.</p>  
-  <form action="" method="post">{% csrf_token %}
-    <label for="username">User name:</label>
-    <input type="text" name="username" value="" id="username">
-    <label for="password">Password:</label>
-    <input type="password" name="password" value="" id="password">
-
-    <input type="submit" value="login" />
-    <input type="hidden" name="next" value="{{ next|escape }}" />
-  </form>
-   <p>Or Register </p>
-	<form action="/register/" method="get">{% csrf_token %}
-	<input type="submit" value="Register" />
-	</form>
-
-{% endblock %}
+	<div class="container">
+      <form class="form-signin" action="/login/" method="post">{% csrf_token %}
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <input name="username" type="text" class="form-control" placeholder="Username" autofocus>
+        <input name="password" type="password" class="form-control" placeholder="Password">
+        <label class="checkbox">
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+        <button class="btn btn-lg btn-primary btn-inline" type="submit">Sign in</button>        
+        <button class="btn btn-lg btn-primary btn-inline" type="button" onclick="javascript:window.location.href='/register/'">Sign up</button>
+      </form>    
+	</div>
+</body>
+</html>
